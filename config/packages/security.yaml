@@ -1,17 +1,37 @@
 security:
+    # enable_authenticator_manager: true
     # https://symfony.com/doc/current/security.html#registering-the-user-hashing-passwords
     password_hashers:
         Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface: 'auto'
     # https://symfony.com/doc/current/security.html#loading-the-user-the-user-provider
     providers:
-        users_in_memory: { memory: null }
+        app_user_provider:
+            #pour gérer une connexion avec un seul identifier (email)
+            #entity:
+                #class: App\Entity\User
+                #property: email
+            #pour gérer une connexion avec deux identifier (email ou phone)
+            id: App\Security\MultiUserProvider
     firewalls:
-        dev:
-            pattern: ^/(_(profiler|wdt)|css|images|js)/
-            security: false
-        main:
-            lazy: true
-            provider: users_in_memory
+        login:
+            pattern: ^/api/login$
+            stateless: true
+            #pour gérer une connexion avec deux identifier (email ou phone)
+            provider: app_user_provider
+            json_login:
+                check_path: /api/login
+                username_path: username
+                password_path: password
+                # Utilisez votre propre handler
+                success_handler: App\Security\AuthenticationSuccessHandler
+                failure_handler: lexik_jwt_authentication.handler.authentication_failure
+
+        api:
+            pattern:   ^/api
+            stateless: true
+            provider: app_user_provider   #  (recommandé aussi)
+            jwt: ~
+            entry_point: jwt
 
             # activate different ways to authenticate
             # https://symfony.com/doc/current/security.html#the-firewall
@@ -22,9 +42,9 @@ security:
     # Easy way to control access for large sections of your site
     # Note: Only the *first* access control that matches will be used
     access_control:
-        # - { path: ^/admin, roles: ROLE_ADMIN }
-        # - { path: ^/profile, roles: ROLE_USER }
-
+        - { path: ^/api/user/create, roles: PUBLIC_ACCESS }
+        - { path: ^/api/v1,roles: IS_AUTHENTICATED_FULLY }
+        # - { path: ^/api/user/info, roles: IS_AUTHENTICATED_FULLY }
 when@test:
     security:
         password_hashers:

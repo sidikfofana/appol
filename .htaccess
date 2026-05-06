@@ -1,0 +1,11 @@
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /api/
+
+    # Si le fichier ou le dossier demandé existe, Apache le gère directement
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+
+    # Rediriger toutes les autres requêtes vers index.php (Symfony)
+    RewriteRule ^ index.php [QSA,L]
+</IfModule>
